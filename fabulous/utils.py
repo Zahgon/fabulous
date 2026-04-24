@@ -37,15 +37,7 @@ def memoize(function):
     Don't use this unless you've examined the code and see the
     potential risks.
     """
-    cache = {}
-    @functools.wraps(function)
-    def _memoize(*args):
-        if args in cache:
-            return cache[args]
-        result = function(*args)
-        cache[args] = result
-        return result
-    return function
+    pass
 
 
 class TerminalInfo(object):
@@ -81,7 +73,7 @@ class TerminalInfo(object):
     """
 
     def __init__(self, bgcolor='black'):
-        self.bgcolor = bgcolor
+        raise NotImplementedError
 
     @property
     def termfd(self):
@@ -91,10 +83,7 @@ class TerminalInfo(object):
         return whichever one is actually a TTY in case you're
         redirecting i/o through pipes.
         """
-        for fd in (2, 1, 0):
-            if os.isatty(fd):
-                return fd
-        raise Exception("No TTY could be found")
+        pass
 
     @property
     def dimensions(self):
@@ -106,34 +95,25 @@ class TerminalInfo(object):
         :return: Returns ``(width, height)``.  If there's no terminal
                  to be found, we'll just return ``(79, 40)``.
         """
-        try:
-            call = fcntl.ioctl(self.termfd, termios.TIOCGWINSZ, "\000" * 8)
-        except IOError:
-            return (79, 40)
-        else:
-            height, width = struct.unpack("hhhh", call)[:2]
-            return (width, height)
+        pass
 
     @property
     def width(self):
         """Returns width of terminal in characters
         """
-        return self.dimensions[0]
+        pass
 
     @property
     def height(self):
         """Returns height of terminal in lines
         """
-        return self.dimensions[1]
+        pass
 
     def _get_bgcolor(self):
-        return self._bgcolor
+        pass
 
     def _set_bgcolor(self, color):
-        if isinstance(color, grapefruit.Color):
-            self._bgcolor = color
-        else:
-            self._bgcolor = grapefruit.Color.NewFromHtml(color)
+        pass
 
     bgcolor = property(_get_bgcolor, _set_bgcolor)
 
@@ -148,9 +128,4 @@ def pil_check():
     modules to work.  Because PIL can be very tricky to install, it's
     not listed in the ``setup.py`` requirements list.
     """
-    try:
-        import PIL
-    except ImportError:
-        raise ImportError("Please install PIL to use this feature: "
-                          "https://pillow.readthedocs.io/en/latest"
-                          "/installation.html")
+    pass

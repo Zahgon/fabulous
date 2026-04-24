@@ -68,18 +68,7 @@ def input_object(prompt_text, cast = None, default = None,
     castarg, castkwarg
         list and dictionary. Extra arguments passed on to the cast.
     """
-    while True:
-        stdout.write(prompt_text)
-        value = stdout.raw_input(prompt_ext)
-        if value == '': return default
-        try:
-            if cast != None: value = cast(value, *castarg, **castkwarg)
-        except ValueError as details:
-            if cast in NICE_INPUT_ERRORS: # see comment above this constant
-                stderr.write(ERROR_MESSAGE % (NICE_INPUT_ERRORS[cast] % details))
-            else: stderr.write(ERROR_MESSAGE % (DEFAULT_INPUT_ERRORS % str(details)))
-            continue
-        return value
+    pass
 
 def query(question, values, default=None, list_values = False, ignorecase = True ):
     """Preset a few options
@@ -125,44 +114,14 @@ def query(question, values, default=None, list_values = False, ignorecase = True
     Using list_values = False will display a list, with descriptions printed out
     from the 'desc' keyword
     """
-    values = list(values)
-    for i in range(len(values)):
-        if not isinstance(values[i], dict):
-            values[i] = {'values': [values[i]]}
-    try:
-        import readline, rlcomplete
-        wordlist = [ str(v) for value in values
-                    for v in value['values']]
-        completer = rlcomplete.ListCompleter(wordlist, ignorecase)
-        readline.parse_and_bind("tab: complete")
-        readline.set_completer(completer.complete)
-    except ImportError:
-        pass
-    valuelist = []
-    for item in values:
-        entry = ( display('bright', item.get('fg'), item.get('bg')) +
-            str(item['values'][0]) + display(['default']) )
-        if str(item['values'][0]) == str(default): entry = '['+entry+']'
-        if list_values: entry += ' : ' + item['desc']
-        valuelist.append(entry)
-    if list_values: question += os.linesep + os.linesep.join(valuelist) + os.linesep
-    else: question += ' (' + '/'.join(valuelist) + ')'
-    return input_object(question, cast = query_cast, default=default,
-                 castarg=[values,ignorecase])
+    pass
 
 def query_cast(value, answers, ignorecase = False):
     """A cast function for query
     
     Answers should look something like it does in query
     """
-    if ignorecase: value = value.lower()
-    for item in answers:
-        for a in item['values']:
-            if ignorecase and (value == str(a).lower()):
-                return item['values'][0]
-            elif value == a:
-                return item['values'][0]
-    raise ValueError("Response '%s' not understood, please try again." % value)
+    pass
 
 def file_chooser(prompt_text = "Enter File: ", default=None, filearg=[], filekwarg={}):
     """A simple tool to get a file from the user. Takes keyworded arguemnts
@@ -173,24 +132,7 @@ def file_chooser(prompt_text = "Enter File: ", default=None, filearg=[], filekwa
     
     filekwarg may contain arguements passed on to ``open()``.
     """
-    try:
-        import readline, rlcomplete
-        completer = rlcomplete.PathCompleter()
-        readline.set_completer_delims(completer.delims)
-        readline.parse_and_bind("tab: complete")
-        readline.set_completer(completer.complete)
-    except ImportError:
-        pass
-    while True:
-        f = raw_input(prompt_text)
-        if f == '': return default
-        f = os.path.expanduser(f)
-        if len(f) != 0 and f[0] == os.path.sep:
-            f = os.path.abspath(f)
-        try:
-            return open(f, *filearg, **filekwarg)
-        except IOError as e:
-            stderr.write(ERROR_MESSAGE % ("unable to open %s : %s" % (f, e)))
+    pass
 
 if __name__ == '__main__':
     import doctest

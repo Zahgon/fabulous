@@ -298,38 +298,16 @@ class Color:
         The whitepoint reference, default is 2° D65.
 
     '''
-    if not(isinstance(values, tuple)):
-      raise TypeError('values must be a tuple')
-
-    if mode=='rgb':
-      self.__rgb = values
-      self.__hsl = Color.RgbToHsl(*values)
-    elif mode=='hsl':
-      self.__hsl = values
-      self.__rgb = Color.HslToRgb(*values)
-    else:
-      raise ValueError('Invalid color mode: ' + mode)
-
-    self.__a = alpha
-    self.__wref = wref
+    raise NotImplementedError
 
   def __ne__(self, other):
-    return not self.__eq__(other)
+    raise NotImplementedError
 
   def __eq__(self, other):
-    try:
-      if isinstance(other, Color):
-        return (self.__rgb==other.__rgb) and (self.__a==other.__a)
-      if len(other) != 4:
-        return False
-      return list(self.__rgb + (self.__a,)) == list(other)
-    except TypeError:
-      return False
-    except AttributeError:
-      return False
+    raise NotImplementedError
 
   def __repr__(self):
-    return str(self.__rgb + (self.__a,))
+    raise NotImplementedError
 
   def __str__(self):
     '''A string representation of this grapefruit.Color instance.
@@ -338,7 +316,7 @@ class Color:
       The RGBA representation of this grapefruit.Color instance.
 
     '''
-    return '(%g, %g, %g, %g)' % (self.__rgb + (self.__a,))
+    raise NotImplementedError
 
   if sys.version_info[0] < 3:
     def __unicode__(self):
@@ -348,27 +326,20 @@ class Color:
         The RGBA representation of this grapefruit.Color instance.
 
       '''
-      return unicode('%g, %g, %g, %g)') % (self.__rgb + (self.__a,))
+      raise NotImplementedError
 
   def __iter__(self):
-    return iter(self.__rgb + (self.__a,))
+    raise NotImplementedError
 
   def __len__(self):
     return 4
 
   def __GetIsLegal(self):
-    return all(0.0 <= v <= 1.0 for v in self)
+    pass
   isLegal = property(fget=__GetIsLegal, doc='Boolean indicating whether the color is within the legal gamut.')
 
   def __GetNearestLegal(self):
-    def clamp(x, lo, hi):
-      if x < lo:
-        return lo
-      elif x > hi:
-        return hi
-      else:
-        return x
-    return Color.NewFromRgb(*[clamp(v, 0.0, 1.0) for v in self])
+    pass
   nearestLegal = property(fget=__GetNearestLegal, doc='The nearest legal color.')
 
   @staticmethod
@@ -393,37 +364,11 @@ class Color:
     (30.0, 1.0, 0.5)
 
     '''
-    minVal = min(r, g, b)       # min RGB value
-    maxVal = max(r, g, b)       # max RGB value
-
-    l = (maxVal + minVal) / 2.0
-    if minVal==maxVal:
-      return (0.0, 0.0, l)    # achromatic (gray)
-
-    d = maxVal - minVal         # delta RGB value
-
-    if l < 0.5: s = d / (maxVal + minVal)
-    else: s = d / (2.0 - maxVal - minVal)
-
-    dr, dg, db = [(maxVal-val) / d for val in (r, g, b)]
-
-    if r==maxVal:
-      h = db - dg
-    elif g==maxVal:
-      h = 2.0 + dr - db
-    else:
-      h = 4.0 + dg - dr
-
-    h = (h*60.0) % 360.0
-    return (h, s, l)
+    pass
 
   @staticmethod
   def _HueToRgb(n1, n2, h):
-    h %= 6.0
-    if h < 1.0: return n1 + ((n2-n1) * h)
-    if h < 3.0: return n2
-    if h < 4.0: return n1 + ((n2-n1) * (4.0 - h))
-    return n1
+    pass
 
   @staticmethod
   def HslToRgb(h, s, l):
@@ -447,20 +392,7 @@ class Color:
     (1.0, 0.5, 0.0)
 
     '''
-    if s==0: return (l, l, l)   # achromatic (gray)
-
-    if l<0.5: n2 = l * (1.0 + s)
-    else: n2 = l+s - (l*s)
-
-    n1 = (2.0 * l) - n2
-
-    h /= 60.0
-    hueToRgb = Color._HueToRgb
-    r = hueToRgb(n1, n2, h + 2)
-    g = hueToRgb(n1, n2, h)
-    b = hueToRgb(n1, n2, h - 2)
-
-    return (r, g, b)
+    pass
 
   @staticmethod
   def RgbToHsv(r, g, b):
@@ -484,22 +416,7 @@ class Color:
     (30.0, 1.0, 1.0)
 
     '''
-    v = float(max(r, g, b))
-    d = v - min(r, g, b)
-    if d==0: return (0.0, 0.0, v)
-    s = d / v
-
-    dr, dg, db = [(v - val) / d for val in (r, g, b)]
-
-    if r==v:
-      h = db - dg             # between yellow & magenta
-    elif g==v:
-      h = 2.0 + dr - db       # between cyan & yellow
-    else: # b==v
-      h = 4.0 + dg - dr       # between magenta & cyan
-
-    h = (h*60.0) % 360.0
-    return (h, s, v)
+    pass
 
   @staticmethod
   def HsvToRgb(h, s, v):
@@ -523,24 +440,7 @@ class Color:
     (1.0, 0.5, 0.0)
 
     '''
-    if s==0: return (v, v, v)   # achromatic (gray)
-
-    h /= 60.0
-    h = h % 6.0
-
-    i = int(h)
-    f = h - i
-    if not(i&1): f = 1-f     # if i is even
-
-    m = v * (1.0 - s)
-    n = v * (1.0 - (s * f))
-
-    if i==0: return (v, n, m)
-    if i==1: return (n, v, m)
-    if i==2: return (m, v, n)
-    if i==3: return (m, n, v)
-    if i==4: return (n, m, v)
-    return (v, m, n)
+    pass
 
   @staticmethod
   def RgbToYiq(r, g, b):
@@ -564,10 +464,7 @@ class Color:
     '(0.592263, 0.458874, -0.0499818)'
 
     '''
-    y = (r * 0.29895808) + (g * 0.58660979) + (b *0.11443213)
-    i = (r * 0.59590296) - (g * 0.27405705) - (b *0.32184591)
-    q = (r * 0.21133576) - (g * 0.52263517) + (b *0.31129940)
-    return (y, i, q)
+    pass
 
   @staticmethod
   def YiqToRgb(y, i, q):
@@ -591,10 +488,7 @@ class Color:
     '(1, 0.5, 5.442e-07)'
 
     '''
-    r = y + (i * 0.9562) + (q * 0.6210)
-    g = y - (i * 0.2717) - (q * 0.6485)
-    b = y - (i * 1.1053) + (q * 1.7020)
-    return (r, g, b)
+    pass
 
   @staticmethod
   def RgbToYuv(r, g, b):
@@ -618,10 +512,7 @@ class Color:
     '(0.5925, -0.29156, 0.357505)'
 
     '''
-    y =  (r * 0.29900) + (g * 0.58700) + (b * 0.11400)
-    u = -(r * 0.14713) - (g * 0.28886) + (b * 0.43600)
-    v =  (r * 0.61500) - (g * 0.51499) - (b * 0.10001)
-    return (y, u, v)
+    pass
 
   @staticmethod
   def YuvToRgb(y, u, v):
@@ -645,10 +536,7 @@ class Color:
     '(0.999989, 0.500015, -6.3276e-05)'
 
     '''
-    r = y + (v * 1.13983)
-    g = y - (u * 0.39465) - (v * 0.58060)
-    b = y + (u * 2.03211)
-    return (r, g, b)
+    pass
 
   @staticmethod
   def RgbToXyz(r, g, b):
@@ -679,12 +567,7 @@ class Color:
     '(0.488941, 0.365682, 0.0448137)'
 
     '''
-    r, g, b = [((v <= 0.03928) and [v / 12.92] or [((v+0.055) / 1.055) **2.4])[0] for v in (r, g, b)]
-
-    x = (r * 0.4124) + (g * 0.3576) + (b * 0.1805)
-    y = (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
-    z = (r * 0.0193) + (g * 0.1192) + (b * 0.9505)
-    return (x, y, z)
+    pass
 
   @staticmethod
   def XyzToRgb(x, y, z):
@@ -712,10 +595,7 @@ class Color:
     '(1, 0.5, 6.81883e-08)'
 
     '''
-    r =  (x * 3.2406255) - (y * 1.5372080) - (z * 0.4986286)
-    g = -(x * 0.9689307) + (y * 1.8757561) + (z * 0.0415175)
-    b =  (x * 0.0557101) - (y * 0.2040211) + (z * 1.0569959)
-    return tuple((((v <= _srgbGammaCorrInv) and [v * 12.92] or [(1.055 * (v ** (1/2.4))) - 0.055])[0] for v in (r, g, b)))
+    pass
 
   @staticmethod
   def XyzToLab(x, y, z, wref=_DEFAULT_WREF):
@@ -744,20 +624,7 @@ class Color:
     '(66.9518, 0.411663, 0.67282)'
 
     '''
-    # White point correction
-    x /= wref[0]
-    y /= wref[1]
-    z /= wref[2]
-
-    # Nonlinear distortion and linear transformation
-    x, y, z = [((v > 0.008856) and [v**_oneThird] or [(7.787 * v) + _sixteenHundredsixteenth])[0] for v in (x, y, z)]
-
-    # Vector scaling
-    l = (116 * y) - 16
-    a = 5.0 * (x - y)
-    b = 2.0 * (y - z)
-
-    return (l, a, b)
+    pass
 
   @staticmethod
   def LabToXyz(l, a, b, wref=_DEFAULT_WREF):
@@ -786,10 +653,7 @@ class Color:
     '(0.488941, 0.365682, 0.0448138)'
 
     '''
-    y = (l + 16) / 116
-    x = (a / 5.0) + y
-    z = y - (b / 2.0)
-    return tuple((((v > 0.206893) and [v**3] or [(v - _sixteenHundredsixteenth) / 7.787])[0] * w for v, w in zip((x, y, z), wref)))
+    pass
 
   @staticmethod
   def CmykToCmy(c, m, y, k):
@@ -815,8 +679,7 @@ class Color:
     '(1, 0.66, 0.5)'
 
     '''
-    mk = 1-k
-    return ((c*mk + k), (m*mk + k), (y*mk + k))
+    pass
 
   @staticmethod
   def CmyToCmyk(c, m, y):
@@ -841,10 +704,7 @@ class Color:
     '(1, 0.32, 0, 0.5)'
 
     '''
-    k = min(c, m, y)
-    if k==1.0: return (0.0, 0.0, 0.0, 1.0)
-    mk = 1-k
-    return ((c-k) / mk, (m-k) / mk, (y-k) / mk, k)
+    pass
 
   @staticmethod
   def RgbToCmy(r, g, b):
@@ -868,7 +728,7 @@ class Color:
     (0, 0.5, 1)
 
     '''
-    return (1-r, 1-g, 1-b)
+    pass
 
   @staticmethod
   def CmyToRgb(c, m, y):
@@ -892,7 +752,7 @@ class Color:
     (1, 0.5, 0)
 
     '''
-    return (1-c, 1-m, 1-y)
+    pass
 
   @staticmethod
   def RgbToIntTuple(r, g, b):
@@ -916,7 +776,7 @@ class Color:
     (255, 128, 0)
 
     '''
-    return tuple(int(round(v*255)) for v in (r, g, b))
+    pass
 
   @staticmethod
   def IntTupleToRgb(intTuple):
@@ -938,7 +798,7 @@ class Color:
     '(1, 0.501961, 0)'
 
     '''
-    return tuple(v / 255 for v in intTuple)
+    pass
 
   @staticmethod
   def RgbToHtml(r, g, b):
@@ -959,7 +819,7 @@ class Color:
     '#ff8000'
 
     '''
-    return '#%02x%02x%02x' % tuple((min(round(v*255), 255) for v in (r, g, b)))
+    pass
 
   @staticmethod
   def HtmlToRgb(html):
@@ -992,20 +852,7 @@ class Color:
     '(1, 0.980392, 0.803922)'
 
     '''
-    html = html.strip().lower()
-    if html[0]=='#':
-      html = html[1:]
-    elif html in Color.NAMED_COLOR:
-      html = Color.NAMED_COLOR[html][1:]
-
-    if len(html)==6:
-      rgb = html[:2], html[2:4], html[4:]
-    elif len(html)==3:
-      rgb = ['%c%c' % (v,v) for v in html]
-    else:
-      raise ValueError('input #%s is not in #RRGGBB format' % html)
-
-    return tuple(((int(n, 16) / 255.0) for n in rgb))
+    pass
 
   @staticmethod
   def RgbToPil(r, g, b):
@@ -1026,8 +873,7 @@ class Color:
     '0x0080ff'
 
     '''
-    r, g, b = [min(int(round(v*255)), 255) for v in (r, g, b)]
-    return (b << 16) + (g << 8) + r
+    pass
 
   @staticmethod
   def PilToRgb(pil):
@@ -1046,10 +892,7 @@ class Color:
     '(1, 0.501961, 0)'
 
     '''
-    r = 0xff & pil
-    g = 0xff & (pil >> 8)
-    b = 0xff & (pil >> 16)
-    return tuple((v / 255.0 for v in (r, g, b)))
+    pass
 
   @staticmethod
   def _WebSafeComponent(c, alt=False):
@@ -1065,26 +908,7 @@ class Color:
       The web safe equivalent of the component value.
 
     '''
-    # This sucks, but floating point between 0 and 1 is quite fuzzy...
-    # So we just change the scale a while to make the equality tests
-    # work, otherwise it gets wrong at some decimal far to the right.
-    sc = c * 100.0
-
-    # If the color is already safe, return it straight away
-    d = sc % 20
-    if d==0: return c
-
-    # Get the lower and upper safe values
-    l = sc - d
-    u = l + 20
-
-    # Return the 'closest' value according to the alt flag
-    if alt:
-      if (sc-l) >= (u-sc): return l/100.0
-      else: return u/100.0
-    else:
-      if (sc-l) >= (u-sc): return u/100.0
-      else: return l/100.0
+    pass
 
   @staticmethod
   def RgbToWebSafe(r, g, b, alt=False):
@@ -1112,8 +936,7 @@ class Color:
     '(1, 0.6, 0)'
 
     '''
-    webSafeComponent = Color._WebSafeComponent
-    return tuple((webSafeComponent(v, alt) for v in (r, g, b)))
+    pass
 
   @staticmethod
   def RgbToGreyscale(r, g, b):
@@ -1138,8 +961,7 @@ class Color:
     '(0.6, 0.6, 0.6)'
 
     '''
-    v = (r + g + b) / 3.0
-    return (v, v, v)
+    pass
 
   @staticmethod
   def RgbToRyb(hue):
@@ -1156,11 +978,7 @@ class Color:
     26.0
 
     '''
-    d = hue % 15
-    i = int(hue / 15)
-    x0 = _RybWheel[i]
-    x1 = _RybWheel[i+1]
-    return x0 + (x1-x0) * d / 15
+    pass
 
   @staticmethod
   def RybToRgb(hue):
@@ -1177,11 +995,7 @@ class Color:
     8.0
 
     '''
-    d = hue % 15
-    i = int(hue / 15)
-    x0 = _RgbWheel[i]
-    x1 = _RgbWheel[i+1]
-    return x0 + (x1-x0) * d / 15
+    pass
 
   @staticmethod
   def NewFromRgb(r, g, b, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1208,7 +1022,7 @@ class Color:
     (1.0, 0.5, 0.0, 0.5)
 
     '''
-    return Color((r, g, b), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromHsl(h, s, l, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1235,7 +1049,7 @@ class Color:
     (1.0, 0.5, 0.0, 0.5)
 
     '''
-    return Color((h, s, l), 'hsl', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromHsv(h, s, v, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1262,8 +1076,7 @@ class Color:
     (1.0, 0.5, 0.0, 0.5)
 
     '''
-    h2, s, l = Color.RgbToHsl(*Color.HsvToRgb(h, s, v))
-    return Color((h, s, l), 'hsl', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromYiq(y, i, q, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1290,7 +1103,7 @@ class Color:
     '(0.999902, 0.499955, -6.6905e-05, 0.5)'
 
     '''
-    return Color(Color.YiqToRgb(y, i, q), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromYuv(y, u, v, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1317,7 +1130,7 @@ class Color:
     '(0.999989, 0.500015, -6.3276e-05, 0.5)'
 
     '''
-    return Color(Color.YuvToRgb(y, u, v), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromXyz(x, y, z, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1344,7 +1157,7 @@ class Color:
     '(1, 0.5, 6.81883e-08, 0.5)'
 
     '''
-    return Color(Color.XyzToRgb(x, y, z), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromLab(l, a, b, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1375,7 +1188,7 @@ class Color:
     '(1.01238, 0.492011, -0.14311, 0.5)'
 
     '''
-    return Color(Color.XyzToRgb(*Color.LabToXyz(l, a, b, wref)), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromCmy(c, m, y, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1402,7 +1215,7 @@ class Color:
     (1, 0.5, 0, 0.5)
 
     '''
-    return Color(Color.CmyToRgb(c, m, y), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromCmyk(c, m, y, k, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1431,7 +1244,7 @@ class Color:
     '(0, 0.34, 0.5, 0.5)'
 
     '''
-    return Color(Color.CmyToRgb(*Color.CmykToCmy(c, m, y, k)), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromHtml(html, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1462,7 +1275,7 @@ class Color:
     '(1, 0.501961, 0, 0.5)'
 
     '''
-    return Color(Color.HtmlToRgb(html), 'rgb', alpha, wref)
+    pass
 
   @staticmethod
   def NewFromPil(pil, alpha=1.0, wref=_DEFAULT_WREF):
@@ -1485,75 +1298,74 @@ class Color:
     '(1, 0.501961, 0, 0.5)'
 
     '''
-    return Color(Color.PilToRgb(pil), 'rgb', alpha, wref)
+    pass
 
   def __GetAlpha(self):
-    return self.__a
+    pass
   alpha = property(fget=__GetAlpha, doc='The transparency of this color. 0.0 is transparent and 1.0 is fully opaque.')
 
   def __GetWRef(self):
-    return self.__wref
+    pass
   whiteRef = property(fget=__GetWRef, doc='the white reference point of this color.')
 
   def __GetRGB(self):
-    return self.__rgb
+    pass
   rgb = property(fget=__GetRGB, doc='The RGB values of this Color.')
 
   def __GetHue(self):
-    return self.__hsl[0]
+    pass
   hue = property(fget=__GetHue, doc='The hue of this color.')
 
   def __GetHSL(self):
-    return self.__hsl
+    pass
   hsl = property(fget=__GetHSL, doc='The HSL values of this Color.')
 
   def __GetHSV(self):
-    h, s, v = Color.RgbToHsv(*self.__rgb)
-    return (self.__hsl[0], s, v)
+    pass
   hsv = property(fget=__GetHSV, doc='The HSV values of this Color.')
 
   def __GetYIQ(self):
-    return Color.RgbToYiq(*self.__rgb)
+    pass
   yiq = property(fget=__GetYIQ, doc='The YIQ values of this Color.')
 
   def __GetYUV(self):
-    return Color.RgbToYuv(*self.__rgb)
+    pass
   yuv = property(fget=__GetYUV, doc='The YUV values of this Color.')
 
   def __GetXYZ(self):
-    return Color.RgbToXyz(*self.__rgb)
+    pass
   xyz = property(fget=__GetXYZ, doc='The CIE-XYZ values of this Color.')
 
   def __GetLAB(self):
-    return Color.XyzToLab(wref=self.__wref, *Color.RgbToXyz(*self.__rgb))
+    pass
   lab = property(fget=__GetLAB, doc='The CIE-LAB values of this Color.')
 
   def __GetCMY(self):
-    return Color.RgbToCmy(*self.__rgb)
+    pass
   cmy = property(fget=__GetCMY, doc='The CMY values of this Color.')
 
   def __GetCMYK(self):
-    return Color.CmyToCmyk(*Color.RgbToCmy(*self.__rgb))
+    pass
   cmyk = property(fget=__GetCMYK, doc='The CMYK values of this Color.')
 
   def __GetIntTuple(self):
-    return Color.RgbToIntTuple(*self.__rgb)
+    pass
   intTuple = property(fget=__GetIntTuple, doc='This Color as a tuple of integers in the range [0...255]')
 
   def __GetHTML(self):
-    return Color.RgbToHtml(*self.__rgb)
+    pass
   html = property(fget=__GetHTML, doc='This Color as an HTML color definition.')
 
   def __GetPIL(self):
-    return Color.RgbToPil(*self.__rgb)
+    pass
   pil = property(fget=__GetPIL, doc='This Color as a PIL compatible value.')
 
   def __GetwebSafe(self):
-    return Color.RgbToWebSafe(*self.__rgb)
+    pass
   webSafe = property(fget=__GetwebSafe, doc='The web safe color nearest to this one (RGB).')
 
   def __GetGreyscale(self):
-    return Color.RgbToGreyscale(*self.rgb)
+    pass
   greyscale = property(fget=__GetGreyscale, doc='The greyscale equivalent to this color (RGB).')
 
   def ColorWithAlpha(self, alpha):
@@ -1570,7 +1382,7 @@ class Color:
     (1.0, 0.5, 0.0, 0.5)
 
     '''
-    return Color(self.__rgb, 'rgb', alpha, self.__wref)
+    pass
 
   def ColorWithWhiteRef(self, wref, labAsRef=False):
     '''Create a new instance based on this one with a new white reference.
@@ -1605,11 +1417,7 @@ class Color:
     '(66.9518, 0.43084, 0.739693)'
 
     '''
-    if labAsRef:
-      l, a, b = self.__GetLAB()
-      return Color.NewFromLab(l, a, b, self.__a, wref)
-    else:
-      return Color(self.__rgb, 'rgb', self.__a, wref)
+    pass
 
   def ColorWithHue(self, hue):
     '''Create a new instance based on this one with a new hue.
@@ -1627,8 +1435,7 @@ class Color:
     (60, 1, 0.5)
 
     '''
-    h, s, l = self.__hsl
-    return Color((hue, s, l), 'hsl', self.__a, self.__wref)
+    pass
 
   def ColorWithSaturation(self, saturation):
     '''Create a new instance based on this one with a new saturation value.
@@ -1650,8 +1457,7 @@ class Color:
     (30, 0.5, 0.5)
 
     '''
-    h, s, l = self.__hsl
-    return Color((h, saturation, l), 'hsl', self.__a, self.__wref)
+    pass
 
   def ColorWithLightness(self, lightness):
     '''Create a new instance based on this one with a new lightness value.
@@ -1669,8 +1475,7 @@ class Color:
     (30, 1, 0.25)
 
     '''
-    h, s, l = self.__hsl
-    return Color((h, s, lightness), 'hsl', self.__a, self.__wref)
+    pass
 
   def DarkerColor(self, level):
     '''Create a new instance based on this one but darker.
@@ -1689,8 +1494,7 @@ class Color:
     (30, 1, 0.25)
 
     '''
-    h, s, l = self.__hsl
-    return Color((h, s, max(l - level, 0)), 'hsl', self.__a, self.__wref)
+    pass
 
   def LighterColor(self, level):
     '''Create a new instance based on this one but lighter.
@@ -1709,8 +1513,7 @@ class Color:
     (30, 1, 0.75)
 
     '''
-    h, s, l = self.__hsl
-    return Color((h, s, min(l + level, 1)), 'hsl', self.__a, self.__wref)
+    pass
 
   def Saturate(self, level):
     '''Create a new instance based on this one but more saturated.
@@ -1729,8 +1532,7 @@ class Color:
     (30, 0.75, 0.5)
 
     '''
-    h, s, l = self.__hsl
-    return Color((h, min(s + level, 1), l), 'hsl', self.__a, self.__wref)
+    pass
 
   def Desaturate(self, level):
     '''Create a new instance based on this one but less saturated.
@@ -1749,8 +1551,7 @@ class Color:
     (30, 0.25, 0.5)
 
     '''
-    h, s, l = self.__hsl
-    return Color((h, max(s - level, 0), l), 'hsl', self.__a, self.__wref)
+    pass
 
   def WebSafeDither(self):
     '''Return the two websafe colors nearest to this one.
@@ -1767,9 +1568,7 @@ class Color:
     '(1, 0.6, 0, 1)'
 
     '''
-    return (
-      Color(Color.RgbToWebSafe(*self.__rgb), 'rgb', self.__a, self.__wref),
-      Color(Color.RgbToWebSafe(alt=True, *self.__rgb), 'rgb', self.__a, self.__wref))
+    pass
 
   def Gradient(self, target, steps=100):
     '''Create a list with the gradient colors between this and the other color.
@@ -1790,21 +1589,7 @@ class Color:
     [(0.75, 0.25, 0.0, 0.75), (0.5, 0.5, 0.0, 0.5), (0.25, 0.75, 0.0, 0.25)]
 
     '''
-    gradient = []
-    rgba1 = self.__rgb + (self.__a,)
-    rgba2 = target.__rgb + (target.__a,)
-
-    steps += 1
-    for n in range(1, steps):
-      d = 1.0*n/steps
-      r = (rgba1[0]*(1-d)) + (rgba2[0]*d)
-      g = (rgba1[1]*(1-d)) + (rgba2[1]*d)
-      b = (rgba1[2]*(1-d)) + (rgba2[2]*d)
-      a = (rgba1[3]*(1-d)) + (rgba2[3]*d)
-
-      gradient.append(Color((r, g, b), 'rgb', a, self.__wref))
-
-    return gradient
+    pass
 
   def ComplementaryColor(self, mode='ryb'):
     '''Create a new instance which is the complementary color of this one.
@@ -1823,13 +1608,7 @@ class Color:
     (210, 1, 0.5)
 
     '''
-    h, s, l = self.__hsl
-
-    if mode == 'ryb': h = Color.RgbToRyb(h)
-    h = (h+180)%360
-    if mode == 'ryb': h = Color.RybToRgb(h)
-
-    return Color((h, s, l), 'hsl', self.__a, self.__wref)
+    pass
 
   def MonochromeScheme(self):
     '''Return 4 colors in the same hue with varying saturation/lightness.
@@ -1843,29 +1622,7 @@ class Color:
     ['(30, 0.2, 0.8)', '(30, 0.5, 0.3)', '(30, 0.2, 0.6)', '(30, 0.5, 0.8)']
 
     '''
-    def _wrap(x, min, thres, plus):
-      if (x-min) < thres: return x + plus
-      else: return x-min
-
-    h, s, l = self.__hsl
-
-    s1 = _wrap(s, 0.3, 0.1, 0.3)
-    l1 = _wrap(l, 0.5, 0.2, 0.3)
-
-    s2 = s
-    l2 = _wrap(l, 0.2, 0.2, 0.6)
-
-    s3 = s1
-    l3 = max(0.2, l + (1-l)*0.2)
-
-    s4 = s
-    l4 = _wrap(l, 0.5, 0.2, 0.3)
-
-    return (
-      Color((h, s1,  l1), 'hsl', self.__a, self.__wref),
-      Color((h, s2,  l2), 'hsl', self.__a, self.__wref),
-      Color((h, s3,  l3), 'hsl', self.__a, self.__wref),
-      Color((h, s4,  l4), 'hsl', self.__a, self.__wref))
+    pass
 
   def TriadicScheme(self, angle=120, mode='ryb'):
     '''Return two colors forming a triad or a split complementary with this one.
@@ -1896,20 +1653,7 @@ class Color:
     (230.0, 1, 0.5)
 
     '''
-    h, s, l = self.__hsl
-    angle = min(angle, 120) / 2.0
-
-    if mode == 'ryb': h = Color.RgbToRyb(h)
-    h += 180
-    h1 = (h - angle) % 360
-    h2 = (h + angle) % 360
-    if mode == 'ryb':
-      h1 = Color.RybToRgb(h1)
-      h2 = Color.RybToRgb(h2)
-
-    return (
-      Color((h1, s,  l), 'hsl', self.__a, self.__wref),
-      Color((h2, s,  l), 'hsl', self.__a, self.__wref))
+    pass
 
   def TetradicScheme(self, angle=30, mode='ryb'):
     '''Return three colors froming a tetrad with this one.
@@ -1930,21 +1674,7 @@ class Color:
     [(90, 1, 0.5), (210, 1, 0.5), (270, 1, 0.5)]
 
     '''
-    h, s, l = self.__hsl
-
-    if mode == 'ryb': h = Color.RgbToRyb(h)
-    h1 = (h + 90 - angle) % 360
-    h2 = (h + 180) % 360
-    h3 = (h + 270 - angle) % 360
-    if mode == 'ryb':
-      h1 = Color.RybToRgb(h1)
-      h2 = Color.RybToRgb(h2)
-      h3 = Color.RybToRgb(h3)
-
-    return (
-      Color((h1, s,  l), 'hsl', self.__a, self.__wref),
-      Color((h2, s,  l), 'hsl', self.__a, self.__wref),
-      Color((h3, s,  l), 'hsl', self.__a, self.__wref))
+    pass
 
   def AnalogousScheme(self, angle=30, mode='ryb'):
     '''Return two colors analogous to this one.
@@ -1973,18 +1703,7 @@ class Color:
     (40, 1, 0.5)
 
     '''
-    h, s, l = self.__hsl
-
-    if mode == 'ryb': h = Color.RgbToRyb(h)
-    h += 360
-    h1 = (h - angle) % 360
-    h2 = (h + angle) % 360
-    if mode == 'ryb':
-      h1 = Color.RybToRgb(h1)
-      h2 = Color.RybToRgb(h2)
-
-    return (Color((h1, s,  l), 'hsl', self.__a, self.__wref),
-        Color((h2, s,  l), 'hsl', self.__a, self.__wref))
+    pass
 
   def AlphaBlend(self, other):
     '''Alpha-blend this color on the other one.
@@ -2004,20 +1723,7 @@ class Color:
     '(1, 0.875, 0.75, 0.84)'
 
     '''
-    # get final alpha channel
-    fa = self.__a + other.__a - (self.__a * other.__a)
-
-    # get percentage of source alpha compared to final alpha
-    if fa==0: sa = 0
-    else: sa = min(1.0, self.__a/other.__a)
-
-    # destination percentage is just the additive inverse
-    da = 1.0 - sa
-
-    sr, sg, sb = [v * sa for v in self.__rgb]
-    dr, dg, db = [v * da for v in other.__rgb]
-
-    return Color((sr+dr, sg+dg, sb+db), 'rgb', fa, self.__wref)
+    pass
 
   def Blend(self, other, percent=0.5):
     '''Blend this color with the other one.
@@ -2037,15 +1743,10 @@ class Color:
     '(1, 0.75, 0.5, 0.4)'
 
     '''
-    dest = 1.0 - percent
-    rgb = tuple(((u * percent) + (v * dest) for u, v in zip(self.__rgb, other.__rgb)))
-    a = (self.__a * percent) + (other.__a * dest)
-    return Color(rgb, 'rgb', a, self.__wref)
+    pass
 
 def _test():
-  import doctest
-  reload(doctest)
-  doctest.testmod()
+  pass
 
 if __name__=='__main__':
   _test()

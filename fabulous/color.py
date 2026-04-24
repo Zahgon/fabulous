@@ -47,7 +47,7 @@ def esc(*codes):
     classes in this module.
 
     """
-    return "\x1b[%sm" % (";".join([str(c) for c in codes]))
+    pass
 
 
 class ColorString(object):
@@ -83,47 +83,33 @@ class ColorString(object):
     fmt = "%s"
 
     def __init__(self, *items):
-        self.items = items
+        raise NotImplementedError
 
     def __str__(self):
-        return self.fmt % (self.sep.join([unicode(s) for s in self.items]))
+        raise NotImplementedError
 
     def __repr__(self):
-        return repr(unicode(self))
+        raise NotImplementedError
 
 
     if sys.version_info[0] > 2:
         def __len__(self):
-            try:
-                import wcwidth
-                # We use:
-                # * wcwidth.wcswidth(item) to find the length of strs
-                # * len(str(item)) to find the length of a bytes object
-                # * len(item) for everything else.
-                return sum([ wcwidth.wcswidth(item) if isinstance(item, str) else len(str(item)) if isinstance(item, bytes) else len(item) for item in self.items ])
-            except ModuleNotFoundError:
-                return sum([len(str(item)) if isinstance(item, bytes) else len(item) for item in self.items])
+            raise NotImplementedError
     else:
         def __len__(self):
-            return sum([len(item) for item in self.items])
+            raise NotImplementedError
 
     def __add__(self, cs):
-        if not isinstance(cs, (basestring, ColorString)):
-            msg = "Concatenatation failed: %r + %r (Not a ColorString or str)"
-            raise TypeError(msg % (type(cs), type(self)))
-        return ColorString(self, cs)
+        raise NotImplementedError
 
     def __radd__(self, cs):
-        if not isinstance(cs, (basestring, ColorString)):
-            msg = "Concatenatation failed: %r + %r (Not a ColorString or str)"
-            raise TypeError(msg % (type(self), type(cs)))
-        return ColorString(cs, self)
+        raise NotImplementedError
 
     @property
     def as_utf8(self):
         """A more readable way to say ``unicode(color).encode('utf8')``
         """
-        return unicode(self).encode('utf8')
+        pass
     def join(self, iterable):
         """
         This works just like `str.join()`, but for ColorStrings!
@@ -138,14 +124,7 @@ class ColorString(object):
             >>> print(plain(" ").join(l))
 
         """
-        ret = None
-        for x in iterable:
-            if ret is None:
-                ret = x
-            else:
-                ret += self
-                ret += x
-        return ret
+        pass
 
 
 class ColorString256(ColorString):
@@ -156,13 +135,10 @@ class ColorString256(ColorString):
 
     """
     def __init__(self, color, *items):
-        (r, g, b) = parse_color(color)
-        self.color = xterm256.rgb_to_xterm(r, g, b)
-        self.items = items
+        raise NotImplementedError
 
     def __str__(self):
-        return self.fmt % (
-            self.color, self.sep.join([unicode(s) for s in self.items]))
+        raise NotImplementedError
 
 class ColorStringTrue(ColorString):
     r"""Base class for 24-bit "truecolor" stylized string-like objects.
@@ -172,12 +148,10 @@ class ColorStringTrue(ColorString):
 
     """
     def __init__(self, color, *items):
-        self.color = parse_color(color)
-        self.items = items
+        raise NotImplementedError
 
     def __str__(self):
-        return self.fmt % (
-            self.color[0], self.color[1], self.color[2], self.sep.join([unicode(s) for s in self.items]))
+        raise NotImplementedError
 
 class plain(ColorString):
     r"""Plain text wrapper
@@ -934,14 +908,10 @@ class complement256(ColorString256):
     fmt = esc(1, 38, 5, "%d", 48, 5, "%d") + "%s" + esc(49, 39, 22)
 
     def __init__(self, color, *items):
-        self.bg = xterm256.rgb_to_xterm(*parse_color(color))
-        self.fg = xterm256.rgb_to_xterm(*complement(color))
-        self.items = items
+        raise NotImplementedError
 
     def __str__(self):
-        return self.fmt % (
-            self.fg, self.bg,
-            self.sep.join([unicode(s) for s in self.items]))
+        raise NotImplementedError
 
 
 class complementtrue(ColorStringTrue):
@@ -958,23 +928,16 @@ class complementtrue(ColorStringTrue):
     fmt = esc(1, 38, 2, "%d", "%d", "%d", 48, 2, "%d", "%d", "%d") + "%s" + esc(49, 39, 22)
 
     def __init__(self, color, *items):
-        self.bg = parse_color(color)
-        self.fg = complement(color)
-        self.items = items
+        raise NotImplementedError
 
     def __str__(self):
-        return self.fmt % (
-            self.fg[0], self.fg[1], self.fg[2],
-            self.bg[0], self.bg[1], self.bg[2],
-            self.sep.join([unicode(s) for s in self.items]))
+        raise NotImplementedError
 
 
 def h1(title, line=OVERLINE):
     """Prints bold text with line beneath it spanning width of terminal
     """
-    width = utils.term.width
-    printy(bold(title.center(width)).as_utf8)
-    printy(bold((line * width)[:width]).as_utf8)
+    pass
 
 
 def parse_color(color):
@@ -992,18 +955,7 @@ def parse_color(color):
     >>> parse_color(grapefruit.Color((0.0, 1.0, 0.0)))
     (0, 255, 0)
     """
-    if isinstance(color, basestring):
-        color = grapefruit.Color.NewFromHtml(color)
-    if isinstance(color, int):
-        (r, g, b) = xterm256.xterm_to_rgb(color)
-    elif hasattr(color, 'rgb'):
-        (r, g, b) = [int(c * 255.0) for c in color.rgb]
-    else:
-        (r, g, b) = color
-    assert isinstance(r, int) and 0 <= r <= 255
-    assert isinstance(g, int) and 0 <= g <= 255
-    assert isinstance(b, int) and 0 <= b <= 255
-    return (r, g, b)
+    pass
 
 
 def complement(color):
@@ -1019,16 +971,10 @@ def complement(color):
     (175, 101, 0)
 
     """
-    (r, g, b) = parse_color(color)
-    gcolor = grapefruit.Color((r / 255.0, g / 255.0, b / 255.0))
-    complement = gcolor.ComplementaryColor()
-    (r, g, b) = [int(c * 255.0) for c in complement.rgb]
-    return (r, g, b)
+    pass
 
 
 def section(title, bar=OVERLINE, strm=sys.stdout):
     """Helper function for testing demo routines
     """
-    width = utils.term.width
-    printy(bold(title.center(width)))
-    printy(bold((bar * width)[:width]))
+    pass

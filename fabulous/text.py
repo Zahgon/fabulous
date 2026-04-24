@@ -109,27 +109,7 @@ class Text(image.Image):
 
     def __init__(self, text, fsize=23, color="#0099ff", shadow=False,
                  skew=None, font='NotoSans-Bold'):
-        utils.pil_check()
-        from PIL import Image, ImageFont, ImageDraw
-        self.text = text
-        self.color = grapefruit.Color.NewFromHtml(color)
-        self.font = ImageFont.truetype(resolve_font(font), fsize)
-        skew = skew or 0
-        size = tuple([n + 3 + skew for n in self.font.getbbox(self.text)[2:]])
-        self.img = Image.new("RGBA", size, (0, 0, 0, 0))
-        cvs = ImageDraw.Draw(self.img)
-        if shadow:
-            cvs.text((2 + skew, 2), self.text,
-                     font=self.font,
-                     fill=(150, 150, 150, 150))
-        cvs.text((1 + skew, 1), self.text,
-                 font=self.font,
-                 fill=self.color.html)
-        if skew:
-            self.img = self.img.transform(
-                size, Image.AFFINE, (1.0, 0.1 * skew, -1.0 * skew,
-                                     0.0, 1.0, 0.0))
-        self.resize(None)
+        raise NotImplementedError
 
 
 class FontNotFound(ValueError):
@@ -168,12 +148,7 @@ def resolve_font(name):
         ...     pass
 
     """
-    if os.path.exists(name):
-        return os.path.abspath(name)
-    fonts = get_font_files()
-    if name in fonts:
-        return fonts[name]
-    raise FontNotFound("Can't find %r :'(  Try adding it to ~/.fonts" % name)
+    pass
 
 font_roots = [
     '/usr/share/fonts/truetype',                # where ubuntu puts fonts
@@ -200,63 +175,12 @@ def get_font_files():
         True
 
     """
-    result = {}
-    for root in font_roots:
-        for path, dirs, names in os.walk(root):
-            for name in names:
-                if name.endswith(('.ttf', '.otf')):
-                    result[name[:-4]] = os.path.join(path, name)
-    return result
+    pass
 
 
 def main():
     """Main function for :command:`fabulous-text`."""
-    import optparse
-    parser = optparse.OptionParser()
-    parser.add_option(
-        "-l", "--list", dest="list", action="store_true", default=False,
-        help=("List available fonts"))
-    parser.add_option(
-        "-S", "--skew", dest="skew", type="int", default=None,
-        help=("Apply skew effect (measured in pixels) to make it look "
-              "extra cool.  For example, Fabulous' logo logo is skewed "
-              "by 5 pixels.  Default: %default"))
-    parser.add_option(
-        "-C", "--color", dest="color", default="#0099ff",
-        help=("Color of your text.  This can be specified as you would "
-              "using HTML/CSS.  Default: %default"))
-    parser.add_option(
-        "-B", "--term-color", dest="term_color", default=None,
-        help=("If you terminal background isn't black, please change "
-              "this value to the proper background so semi-transparent "
-              "pixels will blend properly."))
-    parser.add_option(
-        "-F", "--font", dest="font", default='NotoSans-Bold',
-        help=("Name of font file, or absolute path to one. Use the --list "
-              "flag to see what fonts are available. Fabulous bundles the "
-              "NotoSans-Bold and NotoEmoji-Regular fonts, which are guaranteed "
-              "to work. Default: %default"))
-    parser.add_option(
-        "-Z", "--size", dest="fsize", type="int", default=23,
-        help=("Size of font in points.  Default: %default"))
-    parser.add_option(
-        "-s", "--shadow", dest="shadow", action="store_true", default=False,
-        help=("Size of font in points.  Default: %default"))
-    (options, args) = parser.parse_args(args=sys.argv[1:])
-    if options.list:
-        print("\n".join(sorted(get_font_files())))
-        return
-    if options.term_color:
-        utils.term.bgcolor = options.term_color
-    text = " ".join(args)
-    if not isinstance(text, unicode):
-        text = text.decode('utf-8')
-    for line in text.split("\n"):
-        fab_text = Text(line, skew=options.skew, color=options.color,
-                        font=options.font, fsize=options.fsize,
-                        shadow=options.shadow)
-        for chunk in fab_text:
-            printy(chunk)
+    pass
 
 
 if __name__ == '__main__':

@@ -44,20 +44,7 @@ def xterm_to_rgb(xcolor):
 
     All 256 values are precalculated and stored in :data:`COLOR_TABLE`
     """
-    assert 0 <= xcolor <= 255
-    if xcolor < 16:
-        # basic colors
-        return BASIC16[xcolor]
-    elif 16 <= xcolor <= 231:
-        # color cube
-        xcolor -= 16
-        return (CUBE_STEPS[xcolor // 36 % 6],
-                CUBE_STEPS[xcolor // 6 % 6],
-                CUBE_STEPS[xcolor % 6])
-    elif 232 <= xcolor <= 255:
-        # gray tone
-        c = 8 + (xcolor - 232) * 0x0A
-        return (c, c, c)
+    pass
 
 
 COLOR_TABLE = [xterm_to_rgb(i) for i in range(256)]
@@ -74,18 +61,7 @@ def rgb_to_xterm(r, g, b):
     will replace this function automatically with routines in
     `_xterm256.c`.
     """
-    if r < 5 and g < 5 and b < 5:
-        return 16
-    best_match = 0
-    smallest_distance = 10000000000
-    for c in range(16, 256):
-        d = (COLOR_TABLE[c][0] - r) ** 2 + \
-            (COLOR_TABLE[c][1] - g) ** 2 + \
-            (COLOR_TABLE[c][2] - b) ** 2
-        if d < smallest_distance:
-            smallest_distance = d
-            best_match = c
-    return best_match
+    pass
 
 
 def compile_speedup():
@@ -100,22 +76,7 @@ def compile_speedup():
     - gcc (``sudo apt-get install gcc``)
 
     """
-    import os
-    import ctypes
-    from os.path import join, dirname, getmtime, exists, expanduser
-    # library = join(dirname(__file__), '_xterm256.so')
-    library = expanduser('~/.xterm256.so')
-    sauce = join(dirname(__file__), '_xterm256.c')
-    if not exists(library) or getmtime(sauce) > getmtime(library):
-        build = "gcc -fPIC -shared -o %s %s" % (library, sauce)
-        if (os.system(build + " >/dev/null 2>&1") != 0):
-            raise OSError("GCC error")
-    xterm256_c = ctypes.cdll.LoadLibrary(library)
-    xterm256_c.init()
-    def xterm_to_rgb(xcolor):
-        res = xterm256_c.xterm_to_rgb_i(xcolor)
-        return ((res >> 16) & 0xFF, (res >> 8) & 0xFF, res & 0xFF)
-    return (xterm256_c.rgb_to_xterm, xterm_to_rgb)
+    pass
 
 
 try:

@@ -74,51 +74,19 @@ def lorem_gotham():
     What you need is something with *flavor*, the kind of thing a
     depressed teenager with a lot of black makeup would write.
     """
-    w = lambda l: l[random.randrange(len(l))]
-    er = lambda w: w[:-1]+'ier' if w.endswith('y') else (w+'r' if w.endswith('e') else w+'er')
-    s = lambda w: w+'s'
-    punc = lambda c, *l: " ".join(l)+c
-    sentence = lambda *l: lambda: " ".join(l)
-    pick = lambda *l: (l[random.randrange(len(l))])()
-    while True:
-        yield pick(
-            sentence('the',w(adj),w(them),'and the',w(them),w(them_verb)),
-            sentence('delivering me to',w(place)),
-            sentence('they',w(action),'my',w(me_part),'and',w(me_verb),'with all my',w(feeling)),
-            sentence('in the',w(place),'my',w(feeling),'shall',w(me_verb)),
-            sentence(punc(',', er(w(adj)),'than the a petty',w(feeling))),
-            sentence(er(w(adj)),'than',w(them),'in',w(place)),
-            sentence(punc('!','oh my',w(me_part)),punc('!','the',w(feeling))),
-            sentence('no one',s(w(angst)),'why the',w(them),w(them_verb + me_verb)))
+    pass
 
 
 def lorem_gotham_title():
     """Names your poem
     """
-    w = lambda l: l[random.randrange(len(l))]
-    sentence = lambda *l: lambda: " ".join(l)
-    pick = lambda *l: (l[random.randrange(len(l))])()
-    return pick(
-        sentence('why i',w(me_verb)),
-        sentence(w(place)),
-        sentence('a',w(adj),w(adj),w(place)),
-        sentence('the',w(them)))
+    pass
 
 
 def main():
     """I provide a command-line interface for this module
     """
-    print()
-    print("-~*~--~*~--~*~--~*~--~*~--~*~--~*~--~*~--~*~--~*~-")
-    print(lorem_gotham_title().center(50))
-    print("-~*~--~*~--~*~--~*~--~*~--~*~--~*~--~*~--~*~--~*~-")
-    print()
-    poem = lorem_gotham()
-    for n in range(16):
-        if n in (4, 8, 12):
-            print()
-        print(next(poem))
-    print()
+    pass
 
 
 if __name__ == '__main__':

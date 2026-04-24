@@ -20,22 +20,16 @@ import curses
 
 class Canvas(object):
     def __init__(self, encoding='UTF-8'):
-        self.encoding = encoding
+        raise NotImplementedError
 
     def __enter__(self):
-        self.win = curses.initscr()
-        curses.start_color()
-        curses.init_color(200, 1000, 300, 0)
-        curses.init_pair(1, 200, curses.COLOR_WHITE)
-        return self
+        raise NotImplementedError
 
     def __exit__(self, type_, value, traceback):
-        curses.endwin()
+        raise NotImplementedError
 
     def __setitem__(self, xy, val):
-        self.win.attron(curses.color_pair(1))
-        (x, y) = xy
-        self.win.addch(x, y, val)
+        raise NotImplementedError
 
 
 if __name__ == '__main__':

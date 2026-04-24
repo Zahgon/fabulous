@@ -76,7 +76,7 @@ class Term(object):
         references to the modules are stored as instance variables. This
         method is cleaner and works nicely with inheritance.
         """
-        self.stream = stream
+        raise NotImplementedError
     
     def bell(self):
         """Causes the computer to beep
@@ -153,7 +153,7 @@ class Term(object):
         then the terminal does not support this feature. If you still need to
         have a value to fall back on (75, 25) is a fairly descent fallback.
         """
-        return None
+        pass
     
     def set_title(self, name):
         """Sets the title of the terminal
@@ -168,11 +168,11 @@ class Term(object):
         This should always be True. If it's not somebody is being rather
         nauty.
         """
-        return self.stream.isatty()
+        pass
     
     def fileno(self):
         """Returns the stream's file descriptor as an integer"""
-        return self.stream.fileno()
+        pass
     
     # write-specific methods
     
@@ -184,19 +184,7 @@ class Term(object):
         is being used. At the moment only the display escape codes
         are supported.
         """
-        escape_parts = re.compile('\x01?\x1b\\[([0-9;]*)m\x02?')
-        chunks = escape_parts.split(text)
-        i = 0
-        for chunk in chunks:
-            if chunk != '':
-                if i % 2 == 0:
-                    self.stream.write(chunk)
-                else:
-                    c = chunk.split(';')
-                    r = Magic.rdisplay(c)
-                    self.display(**r) #see caveat 0
-                self.flush()
-            i += 1
+        pass
     
     def writelines(self, sequence_of_strings):
         """Write out a sequence of strings
@@ -204,7 +192,7 @@ class Term(object):
         Note that newlines are not added.  The sequence may be any iterable object
         producing strings. This is equivalent to calling write() for each string.
         """
-        map(self.write, sequence_of_strings)
+        pass
     
     def flush(self):
         """Ensure the text is ouput to the screen.
@@ -212,7 +200,7 @@ class Term(object):
         The write() method will do this automatically, so only use this when
         using self.stream.write().
         """
-        return self.stream.flush()
+        pass
     
     # read-specific methods, they are in need of help
     
@@ -232,43 +220,39 @@ class Term(object):
         way to implement this feature and the features that will depend on
         it.
         """
-        return raw_input(prompt)
+        pass
     
     def next(self):
-        return self.stream.next()
+        pass
     
     def readline(self, *args, **kwargs):
-        return self.stream.readline(*args, **kwargs)
+        pass
     def readlines(self, *args, **kwargs):
-        return self.stream.readlines(*args, **kwargs)
+        pass
     def read(self, *args, **kwargs):
-        return self.stream.read(*args, **kwargs)
+        pass
     
     # read-only properties
     @property
     def mode(self):
-        return self.stream.mode
+        pass
     @property
     def newlines(self):
-        return self.stream.newlines
+        pass
     @property
     def encoding(self):
-        return self.stream.encoding
+        pass
     @property
     def softspace(self):
-        return self.stream.softspace
+        pass
     @property
     def name(self):
-        return self.stream.name
+        pass
 
 class UnixTerm(Term):
     
     def __init__(self, stream):
-        import termios
-        import tty
-        self.termios = termios
-        self.tty = tty
-        Term.__init__(self, stream)
+        raise NotImplementedError
     
     def getch(self):
         """Don't use this yet
@@ -277,75 +261,38 @@ class UnixTerm(Term):
         way to implement this feature and the features that will depend on
         it.
         """
-        return NotImplemented
-        fno = stdout.fileno()
-        mode = self.termios.tcgetattr(fno)
-        try:
-            self.tty.setraw(fno, self.termios.TCSANOW)
-            ch = self.read(1)
-        finally:
-            self.termios.tcsetattr(fno, self.termios.TCSANOW, mode)
-        return ch
+        pass
 
 class CursesTerm(UnixTerm):
     
     def __init__(self, stream):
-        import curses
-        self.curses = curses
-        UnixTerm.__init__(self, stream)
-        if not sys.stdout.isatty(): return
-        self.curses.setupterm()
+        raise NotImplementedError
     
     def bell(self):
-        self.stream.write(self._get_cap('bel'))
+        pass
     
     def display(self, codes=[], fg=None, bg=None):
         """Displays the codes using ANSI escapes
         """
-        codes, fg, bg = Magic.displayformat(codes, fg, bg)
-        self.stream.write(Magic.display(codes, fg, bg))
-        self.flush()
+        pass
         
     def move(self, place, distance = 1):
         """see doc in Term class"""
-        for d in range(distance):
-            self.stream.write(self._get_cap('move '+place))
-        self.flush()
+        pass
     
     def clear(self, scope = 'screen'):
         """see doc in Term class"""
-        if scope == 'line':
-            self.clear('beginning of line')
-            self.clear('end of line')
-        else: self.stream.write(self._get_cap('clear '+scope))
-        self.flush()
+        pass
     
     def get_size(self):
         """see doc in Term class"""
-        self.curses.setupterm()
-        return self.curses.tigetnum('cols'), self.curses.tigetnum('lines')
+        pass
     
     def set_title(self, name):
-        self.write(Magic.OSC + '0;'+str(name) + "\x07") 
+        pass
     
     def _get_cap(self, cap):
-        strcaps = {
-       'move up':'cuu1', 'move down':'cud1', 
-           'move left':'cub1', 'move right':'cuf1',
-           'move beginning of line':'cr', 'move beginning of screen':'home',
-       'clear beginning of line':'el1','clear end of line':'el',
-           'clear screen':'clear', 'clear end of screen':'ed',
-           'clear left':'kbs','clear right':'dch1',
-       'delete line':'dl1',
-       'bell':'bel'}
-        if cap in ('cols','lines'):
-            self.curses.setupterm()
-            c = self.curses.tigetnum(cap)
-            if c > 0: return c
-        elif strcaps.has_key(cap):
-            c = self.curses.tigetstr(strcaps[cap])
-            if c != '': return c
-        raise ValueError("capability '%s' not supported" % cap)
+        pass
     
 
 class WinTerm(Term):
@@ -418,59 +365,16 @@ class WinTerm(Term):
     real_fg = None
     
     def __init__(self, stream):
-        import msvcrt
-        self.msvcrt = msvcrt
-        Term.__init__(self, stream)
-        self._stdout_handle = self._get_std_handle(self.STD_OUTPUT_HANDLE)
-        self._stderr_handle = self._get_std_handle(self.STD_ERROR_HANDLE)
-        self.default_attributes = self._get_console_info()['attributes']
-        self.real_fg = self.default_attributes & 0x7
+        raise NotImplementedError
     
     def display(self, codes=[], fg=None, bg=None):
         """Displays codes using Windows kernel calls
         """
-        codes, fg, bg = Magic.displayformat(codes, fg, bg)
-        color = 0
-        for c in codes:
-            try:
-                f = getattr(self, '_display_' + c)
-                out = f()
-                if out: color |= out
-            except AttributeError:
-                pass
-        cfg, cfgi, cbg, cbgi = self._split_attributes(
-                          self._get_console_info()['attributes'])
-        if self.reverse_input:
-            cfg, cbg = (cbg // 0x10), (cfg * 0x10)
-            cfgi, cbgi = (cbgi // 0x10), (cfgi * 0x10)
-        if fg != None:
-            color |= self.FG[fg]
-            self.real_fg = self.FG[fg]
-        else: color |= cfg
-        if bg != None:
-            color |= self.BG[bg]
-        else: color |= cbg
-        color |= (cfgi | cbgi)
-        fg, fgi, bg, bgi = self._split_attributes(color)
-        if self.dim_output:
-            # intense black
-            fg = 0
-            fgi = self.FG_INTENSITY
-        if self.reverse_output:
-            fg, bg = (bg // 0x10), (fg * 0x10)
-            fgi, bgi = (bgi // 0x10), (fgi * 0x10)
-            self.reverse_input = True
-        if self.hidden_output:
-            fg = (bg // 0x10)
-            fgi = (bgi // 0x10)
-        self._set_attributes(fg | fgi | bg | bgi)
+        pass
     
     def get_size(self):
         """see doc in Term class"""
-        attr = self._get_console_info()
-        cols = attr['window']['right'] - attr['window']['left'] + 1
-        lines = attr['window']['bottom'] - attr['window']['top'] + 1
-        return cols, lines
+        pass
     
     def _get_std_handle(self, handleno):
         """Returns a handle from GetStdHandle
@@ -479,8 +383,7 @@ class WinTerm(Term):
         * self.STD_OUTPUT_HANDLE for stdout
         * self.STD_ERROR_HANDLE for stderr
         """
-        #TODO: is NotImplemented the proper way to do this?
-        return NotImplemented
+        pass
     
     def _get_console_info(self):
         """Get information from GetConsoleScreenBufferInfo
@@ -495,7 +398,7 @@ class WinTerm(Term):
         
         Note: the y part of size is misleading
         """
-        return NotImplemented
+        pass
     
     def _clear_console(self, length, start):
         """Clears a part of the console
@@ -505,14 +408,14 @@ class WinTerm(Term):
         length: int length of cleared section
         start : tuple of x and y coords to start at
         """
-        return NotImplemented
+        pass
     
     def _set_attributes(self, code):
         """ Set console attributes with `code`
         
         Not implemented here. To be implemented by subclasses.
         """
-        return NotImplemented
+        pass
     
     def _split_attributes(self, attrs):
         """Spilt attribute code
@@ -523,49 +426,32 @@ class WinTerm(Term):
         
         Attributes can be joined using ``fg | fgi | bg | bgi``
         """
-        fg = attrs & self.FG_ALL
-        fgi = attrs & self.FG_INTENSITY
-        bg = attrs & self.BG_ALL
-        bgi = attrs & self.BG_INTENSITY
-        return fg, fgi, bg, bgi
+        pass
     
     def _undim(self):
-        self.dim_output = False
-        if self.reverse_input:
-            a = self._get_console_info()['attributes'] & 0x8f
-            self._set_attributes( (self.real_fg * 0x10) | a)
-        else:
-            a = self._get_console_info()['attributes'] & 0xf8
-            self._set_attributes(self.real_fg | a)
+        pass
     
     def _display_default(self):
-        self.hidden_output = False
-        self.reverse_output = False
-        self.reverse_input = False
-        self.dim_output = False
-        self.real_fg = self.default_attributes & 0x7
-        self._set_attributes(self.default_attributes)
+        pass
 
     def _display_bright(self):
-        self._undim()
-        return self.FG_INTENSITY
+        pass
     
     def _display_dim(self):
-        self.dim_output = True
+        pass
     
     def _display_reverse(self):
-        self.reverse_output = True
+        pass
     
     def _display_hidden(self):
-        self.hidden_output = True
+        pass
     
     def _get_position(self):
         """Set the cursor's current position
         
         Returns a tuple in the form (x, y)
         """
-        pos = self._get_console_info()['position']
-        return pos['x'], pos['y']
+        pass
     
     
     def _set_position(self, coord):
@@ -573,30 +459,11 @@ class WinTerm(Term):
         
         coord is a tuple in the form (x, y)
         """
-        return NotImplemented
+        pass
     
     def move(self, place, distance = 1):
         """see doc in Term class"""
-        x, y = self._get_position()
-        if place == 'up':
-            y -= distance
-        elif place == 'down':
-            for i in range(distance): print
-            nx, ny = self._get_position()
-            y = ny
-            self.move('beginning of line')
-        elif place == 'left':
-            x -= distance
-        elif place == 'right':
-            x += distance
-        elif place == 'beginning of line':
-            x = 0
-        elif place == 'beginning of screen':
-            x = 0
-            y = self._get_console_info()['window']['top']
-        else:
-            raise ValueError("invalid place to move")
-        self._set_position((x, y))
+        pass
     
     def clear(self, scope = 'screen'):
         """see doc in Term class
@@ -604,41 +471,7 @@ class WinTerm(Term):
         According to http://support.microsoft.com/kb/99261 the best way
         to clear the console is to write out empty spaces
         """
-        #TODO: clear attributes too
-        if scope == 'screen':
-            bos = (0, self._get_console_info()['window']['top'])
-            cols, lines = self.get_size()
-            length = cols * lines
-            self._clear_console(length, bos)
-            self.move('beginning of screen')
-        elif scope == ' beginning of line':
-            pass
-        elif scope == 'end of line':
-            curx, cury = self._get_position()
-            cols, lines = self.get_size()
-            coord = (curx, cury)
-            length = cols - curx
-            self._clear_console(length, coord)
-        elif scope == 'end of screen':
-            curx, cury = self._get_position()
-            coord = (curx, cury)
-            cols, lines = self.get_size()
-            length = (lines - cury) * cols - curx
-            self._clear_console(length, coord)
-        elif scope == 'line':
-            curx, cury = self._get_position()
-            coord = (0, cury)
-            cols, lines = self.get_size()
-            self._clear_console(cols, coord)
-            self._set_position((curx, cury))
-        elif scope == 'left':
-            self.move('left')
-            self.write(' ')
-        elif scope == 'right':
-            self.write(' ')
-            self.move('left')
-        else:
-            raise ValueError("invalid scope to clear")
+        pass
         
     def getch(self):
         """Don't use this yet
@@ -647,11 +480,10 @@ class WinTerm(Term):
         way to implement this feature and the features that will depend on
         it.
         """
-        return NotImplemented
-        return self.msvcrt.getch()
+        pass
     
     def bell(self):
-        self.stream.write('\x07')
+        pass
 
 class Win32Term(WinTerm):
     """PyWin32 version of Windows terminal control.
@@ -667,12 +499,10 @@ class Win32Term(WinTerm):
     """
     
     def __init__(self, stream):
-        import win32console
-        self.win32console = win32console
-        WinTerm.__init__(self, stream)
+        raise NotImplementedError
     
     def set_title(self, name):
-        return self.win32console.SetConsoleTitle(name)
+        pass
     
     def _get_console_info(self):
         # example output from GetConsoleScreenBufferInfo
@@ -681,42 +511,30 @@ class Win32Term(WinTerm):
         # 'Window': PySMALL_RECTType(Left=0,Top=0,Right=79,Bottom=24),
         # 'Attributes': 7,
         # 'Size': PyCOORDType(X=80,Y=300)}
-        attrs = self._stdout_handle.GetConsoleScreenBufferInfo()
-        return {'max size': self._pyCoord_dict(attrs['MaximumWindowSize']),
-                'position': self._pyCoord_dict(attrs['CursorPosition']),
-                'window': self._pySMALL_RECTType_dict(attrs['Window']),
-                'attributes': attrs['Attributes'],
-                # y part of size value is misleading
-                'size': self._pyCoord_dict(attrs['Size']) }
+        pass
     
     def _get_std_handle(self, handle):
-        return self.win32console.GetStdHandle(handle)
+        pass
     
     def _get_title(self):
-        return self.win32console.GetConsoleTitle()
+        pass
     
     def _set_attributes(self, attr):
-        self._stdout_handle.SetConsoleTextAttribute(attr)
+        pass
     
     def _set_position(self, coord):
-        coord = self.win32console.PyCOORDType(coord[0], coord[1])
-        self._stdout_handle.SetConsoleCursorPosition(coord)
+        pass
         
     def _clear_console(self, length, start):
         # length: int
         # start : tuple of x and y coords
-        char = unicode(' ')
-        coord = self.win32console.PyCOORDType(start[0], start[1])
-        # char is unicode
-        self._stdout_handle.FillConsoleOutputCharacter(
-           char, length, coord)
+        pass
     
     def _pyCoord_dict(self, coord):
-        return { 'x': coord.X, 'y': coord.Y}
+        pass
     
     def _pySMALL_RECTType_dict(self, rect):
-        return { 'left': rect.Left, 'top': rect.Top,
-                'right': rect.Right, 'bottom': rect.Bottom}
+        pass
 
 class WinCTypesTerm(WinTerm):
     """CTypes version of Windows terminal control.
@@ -729,69 +547,41 @@ class WinCTypesTerm(WinTerm):
     """
     
     def __init__(self, stream):
-        import ctypes
-        self.ctypes = ctypes
-        WinTerm.__init__(self, stream)
+        raise NotImplementedError
     
     def set_title(self, name):
-        self.ctypes.windll.kernel32.SetConsoleTitleA(name)
+        pass
     
     def _get_console_info(self):
         # From IPython's winconsole.py, by Alexander Belchenko
-        import struct
-        csbi = self.ctypes.create_string_buffer(22)
-        res = self.ctypes.windll.kernel32.GetConsoleScreenBufferInfo(
-                                     self._stdout_handle, csbi)
-        (bufx, bufy, curx, cury, wattr, left, top, right, bottom, maxx,
-         maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-        return {'max size': {'x':maxx, 'y':maxy },
-                'position': {'x':curx, 'y':cury },
-                'window': {'left': left, 'top': top,
-                           'right': right, 'bottom': bottom},
-                'attributes': wattr,
-                # y part of size value is misleading
-                'size': {'x':maxx, 'y':maxy } }
+        pass
     
     def _get_std_handle(self, handle):
-        return self.ctypes.windll.kernel32.GetStdHandle(handle)
+        pass
     
     def _get_title(self):
         """According to http://support.microsoft.com/kb/124103 the buffer
         size is 1024
         
         Does not support unicode, only ANSI"""
-        #TODO: unicode support
-        strbuffer = self.ctypes.create_string_buffer(1024)
-        size = self.ctypes.c_short(1024)
-        #unicode versions are (Get|Set)ConsolTitleW
-        self.ctypes.windll.kernel32.GetConsoleTitleA(strbuffer, size)
-        return strbuffer.value
+        pass
     
     def _set_attributes(self, attr):
-        self.ctypes.windll.kernel32.SetConsoleTextAttribute(
-                        self._stdout_handle, attr)
+        pass
     
     def _set_position(self, coord):
-        coord = self._get_coord(coord)
-        self.ctypes.windll.kernel32.SetConsoleCursorPosition(
-                        self._stdout_handle, coord)
+        pass
         
     def _clear_console(self, length, start):
         # length: int
         # start : tuple of x and y coords
-        char = self.ctypes.c_char(' ')
-        coord = self._get_coord(start)
-        charswritten = self.ctypes.c_int()
-        clength = self.ctypes.c_int(length)
-        self.ctypes.windll.kernel32.FillConsoleOutputCharacterA(
-           self._stdout_handle, char, clength, coord, charswritten)
+        pass
     
     def _get_coord(self, coord):
         """ It's a hack, see fixcoord in pyreadline's console.py (revision 
         1289)
         """
-        x, y = coord
-        return self.ctypes.c_int(y << 16 | x)
+        pass
 
 class Magic(object):
     """Special codes and what not
@@ -824,18 +614,7 @@ class Magic(object):
     @staticmethod
     def displayformat(codes=[], fg=None, bg=None):
         """Makes sure all arguments are valid"""
-        if isinstance(codes, basestring):
-            codes = [codes]
-        else:
-            codes = list(codes)
-        for code in codes:
-            if code not in Magic.DISPLAY.keys():
-                raise ValueError("'%s' not a valid display value" % code)
-        for color in (fg, bg):
-            if color != None:
-                if color not in Magic.COLORS.keys():
-                    raise ValueError("'%s' not a valid color" % color)
-        return [codes, fg, bg]
+        pass
     
     @staticmethod
     def rdisplay(codes):
@@ -853,29 +632,11 @@ class Magic(object):
         >>> result['fg']
         'blue'
         """
-        dcodes = []
-        fg = bg = None
-        for code in codes:
-            code = int(code)
-            offset = code // 10
-            decimal = code % 10
-            if offset == 3 and decimal in Magic.COLORS.values(): fg = decimal
-            elif offset == 4 and decimal in Magic.COLORS.values(): bg = decimal
-            elif code in Magic.DISPLAY.values(): dcodes.append(code)
-            else: pass # drop unhandled values
-        r = {}
-        if len(codes): r['codes'] = [Magic.rDISPLAY[c] for c in dcodes]
-        if fg != None: r['fg'] = Magic.rCOLORS[fg]
-        if bg != None: r['bg'] = Magic.rCOLORS[bg]
-        return r
+        pass
 
     @staticmethod
     def display(codes=[], fg=None, bg=None):
-        codes, fg, bg = Magic.displayformat(codes, fg, bg)
-        codes = [str(Magic.DISPLAY[code]) for code in codes]
-        if fg != None: codes.append(str(30 + Magic.COLORS[fg]))
-        if bg != None: codes.append(str(40 + Magic.COLORS[bg]))
-        return Magic.CSI + ";".join(codes) + 'm'
+        pass
 
 def display(codes=[], fg=None, bg=None):
     """Returns an ANSI display code. This is useful when writing to an Term
@@ -908,26 +669,16 @@ def display(codes=[], fg=None, bg=None):
     do not support them (and for good reason too), they can be really
     annoying and make reading difficult.
     """
-    return Magic.display(codes, fg, bg)
+    pass
 
 # try to use the Windows method first because their are some terminals on
 # MS Windows that support both the Windows and curses methods, but their
 # curses implementations are buggy.
 
 def _get_terms():
-    terms = None
-    if 'win32' in sys.platform or 'cygwin' == sys.platform:
-        terms = _get_term(WinCTypesTerm) or _get_term(Win32Term)
-    if not terms:
-        terms = (_get_term(CursesTerm) or 
-                 _get_term(UnixTerm) or 
-                 _get_term(Term))
-    return terms
+    pass
 
 def _get_term(termclass):
-    try:
-        return (termclass(sys.stdin), termclass(sys.stdout),
-                termclass(sys.stderr))
-    except ImportError: return None
+    pass
 
 stdin, stdout, stderr = _get_terms()

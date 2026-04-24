@@ -65,13 +65,7 @@ class Image(object):
     pad = ' '
 
     def __init__(self, path, width=None):
-        utils.pil_check()
-        from PIL import Image as PillsPillsPills
-        self.img = PillsPillsPills.open(path)
-        # when reading pixels, gifs will return colors corresponding
-        # to a palette if we don't do this :\
-        self.img = self.img.convert("RGBA")
-        self.resize(width)
+        raise NotImplementedError
 
     def __iter__(self):
         """I allow Image to behave as an iterable
@@ -82,11 +76,7 @@ class Image(object):
 
         :return: Yields lines of text (without line end character)
         """
-        # strip out blank lines
-        for line in self.reduce(self.convert()):
-            if line.strip():
-                yield line
-        yield ""
+        raise NotImplementedError
 
     def __str__(self):
         """I return the entire image as one big string
@@ -96,28 +86,20 @@ class Image(object):
 
         :return: String containing all lines joined together.
         """
-        return "\n".join(self)
+        raise NotImplementedError
 
     @property
     def size(self):
         """Returns size of image
         """
-        return self.img.size
+        pass
 
     def resize(self, width=None):
         """Resizes image to fit inside terminal
 
         Called by the constructor automatically.
         """
-        (iw, ih) = self.size
-        if width is None:
-            width = min(iw, utils.term.width)
-        elif (sys.version_info >= (3, 0) and isinstance(width, str)) or (sys.version_info < (3, 0) and isinstance(width, basestring)):
-            percents = dict([(pct, '%s%%' % (pct)) for pct in range(101)])
-            width = percents[width]
-        height = int(float(ih) * (float(width) / float(iw)))
-        height //= 2
-        self.img = self.img.resize((width, height))
+        pass
 
     def reduce(self, colors):
         """Converts color codes into optimized text
@@ -133,61 +115,17 @@ class Image(object):
         :return: Yields lines of optimized text.
 
         """
-        need_reset = False
-        line = []
-        for color, items in itertools.groupby(colors):
-            if color is None:
-                if need_reset:
-                    line.append("\x1b[49m")
-                    need_reset = False
-                line.append(self.pad * len(list(items)))
-            elif color == "EOL":
-                if need_reset:
-                    line.append("\x1b[49m")
-                    need_reset = False
-                    yield "".join(line)
-                else:
-                    line.pop()
-                    yield "".join(line)
-                line = []
-            else:
-                need_reset = True
-                line.append("\x1b[48;5;%dm%s" % (
-                    color, self.pad * len(list(items))))
+        pass
 
     def convert(self):
         """Yields xterm color codes for each pixel in image
         """
-        (width, height) = self.img.size
-        bgcolor = utils.term.bgcolor
-        self.img.load()
-        for y in range(height):
-            for x in range(width):
-                rgba = self.img.getpixel((x, y))
-                if len(rgba) == 4 and rgba[3] == 0:
-                    yield None
-                elif len(rgba) == 3 or rgba[3] == 255:
-                    yield xterm256.rgb_to_xterm(*rgba[:3])
-                else:
-                    color = grapefruit.Color.NewFromRgb(
-                        *[c / 255.0 for c in rgba])
-                    rgba = grapefruit.Color.AlphaBlend(color, bgcolor).rgb
-                    yield xterm256.rgb_to_xterm(
-                        *[int(c * 255.0) for c in rgba])
-            yield "EOL"
+        pass
 
 
 def main():
     """Main function for :command:`fabulous-image`."""
-    import optparse
-    parser = optparse.OptionParser()
-    parser.add_option(
-        "-w", "--width", dest="width", type="int", default=None,
-        help=("Width of printed image in characters.  Default: %default"))
-    (options, args) = parser.parse_args(args=sys.argv[1:])
-    for imgpath in args:
-        for line in Image(imgpath, options.width):
-            printy(line)
+    pass
 
 
 if __name__ == '__main__':

@@ -19,12 +19,4 @@ import sys
 
 def printy(s):
     """Python 2/3 compatible print-like function"""
-    if hasattr(s, 'as_utf8'):
-        if hasattr(sys.stdout, 'buffer'):
-            sys.stdout.buffer.write(s.as_utf8)
-            sys.stdout.buffer.write(b"\n")
-        else:
-            sys.stdout.write(s.as_utf8)
-            sys.stdout.write(b"\n")
-    else:
-        print(s)
+    pass
